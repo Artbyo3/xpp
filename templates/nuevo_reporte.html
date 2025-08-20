@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Reporte - Registro de Ingresos{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-lg shadow-lg p-8 border-l-4 border-blue-500">
+        <div class="text-center mb-6">
+            <div class="text-blue-600 text-4xl mb-4">📊</div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Nuevo Reporte Mensual</h2>
+            <p class="text-gray-600">Selecciona el período para crear tu reporte</p>
+        </div>
+
+        <form id="reporteForm" class="space-y-4">
+            <div>
+                <label for="year" class="block text-sm font-medium text-gray-700 mb-2">Año</label>
+                <div class="custom-wheel-picker" data-input="year">
+                    <input type="hidden" id="year" name="year" value="2025">
+                    <div class="wheel-container">
+                        <div class="wheel-overlay-top"></div>
+                        <div class="wheel-selector"></div>
+                        <div class="wheel-overlay-bottom"></div>
+                        <div class="wheel-content" id="yearWheel">
+                            {% for year in range(2020, 2040) %}
+                            <div class="wheel-item" data-value="{{ year }}">{{ year }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label for="month" class="block text-sm font-medium text-gray-700 mb-2">Mes</label>
+                <div class="custom-wheel-picker" data-input="month">
+                    <input type="hidden" id="month" name="month" value="1">
+                    <div class="wheel-container">
+                        <div class="wheel-overlay-top"></div>
+                        <div class="wheel-selector"></div>
+                        <div class="wheel-overlay-bottom"></div>
+                        <div class="wheel-content" id="monthWheel">
+                            <div class="wheel-item" data-value="1">Enero</div>
+                            <div class="wheel-item" data-value="2">Febrero</div>
+                            <div class="wheel-item" data-value="3">Marzo</div>
+                            <div class="wheel-item" data-value="4">Abril</div>
+                            <div class="wheel-item" data-value="5">Mayo</div>
+                            <div class="wheel-item" data-value="6">Junio</div>
+                            <div class="wheel-item" data-value="7">Julio</div>
+                            <div class="wheel-item" data-value="8">Agosto</div>
+                            <div class="wheel-item" data-value="9">Septiembre</div>
+                            <div class="wheel-item" data-value="10">Octubre</div>
+                            <div class="wheel-item" data-value="11">Noviembre</div>
+                            <div class="wheel-item" data-value="12">Diciembre</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg">
+                <span class="mr-2">📈</span>
+                Crear Reporte
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-500 select-none no-copy" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; 
+                      -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; 
+                      pointer-events: none; cursor: default;" oncontextmenu="return false;"
+                onselectstart="return false;" ondragstart="return false;">
+                💡 Tip: Puedes crear reportes para cualquier mes del año
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos para Wheel Picker estilo iPhone */
+    .custom-wheel-picker {
+        position: relative;
+        width: 100%;
+        height: 120px;
+        margin: 8px 0;
+    }
+
+    .wheel-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        border: 2px solid #e2e8f0;
+        overflow: hidden;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08);
+        perspective: 800px;
+    }
+
+    .wheel-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        transform-style: preserve-3d;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        cursor: grab;
+    }
+
+    .wheel-content:active {
+        cursor: grabbing;
+    }
+
+    .wheel-item {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 500;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        transform-origin: center;
+        backface-visibility: hidden;
+        user-select: none;
+    }
+
+    .wheel-item:hover {
+        color: #3b82f6;
+        transform: scale(1.04);
+    }
+
+    .wheel-item.selected {
+        color: #1f2937;
+        font-weight: 700;
+        transform: scale(1.08);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .wheel-overlay-top,
+    .wheel-overlay-bottom {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .wheel-overlay-top {
+        top: 0;
+        background: linear-gradient(to bottom,
+                rgba(248, 250, 252, 0.95) 0%,
+                rgba(248, 250, 252, 0.8) 50%,
+                rgba(248, 250, 252, 0) 100%);
+    }
+
+    .wheel-overlay-bottom {
+        bottom: 0;
+        background: linear-gradient(to top,
+                rgba(248, 250, 252, 0.95) 0%,
+                rgba(248, 250, 252, 0.8) 50%,
+                rgba(248, 250, 252, 0) 100%);
+    }
+
+    .wheel-selector {
+        position: absolute;
+        top: 40px;
+        left: 12%;
+        width: 76%;
+        height: 40px;
+        border: 2px solid #3b82f6;
+        border-radius: 12px;
+        background: rgba(59, 130, 246, 0.08);
+        pointer-events: none;
+        z-index: 5;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.25);
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .wheel-item {
+            font-size: 14px;
+            height: 36px;
+        }
+
+        .custom-wheel-picker {
+            height: 110px;
+        }
+
+        .wheel-selector {
+            top: 37px;
+            height: 36px;
+        }
+
+        .wheel-overlay-top,
+        .wheel-overlay-bottom {
+            height: 37px;
+        }
+    }
+</style>
+
+<script>
+    // Sistema de Wheel Picker estilo iPhone
+    class WheelPicker {
+        constructor(container, inputId) {
+            this.container = container;
+            this.inputId = inputId;
+            this.wheelContent = container.querySelector('.wheel-content');
+            this.items = container.querySelectorAll('.wheel-item');
+            this.currentIndex = 0;
+            this.isDragging = false;
+            this.startY = 0;
+            this.currentY = 0;
+            this.velocity = 0;
+            this.lastY = 0;
+            this.lastTime = 0;
+
+            this.itemHeight = window.innerWidth <= 640 ? 36 : 40;
+            this.maxTranslate = -(this.items.length - 1) * this.itemHeight;
+
+            this.init();
+        }
+
+        init() {
+            // Inicializar en el primer elemento (enero para meses, primer año para años)
+            this.currentIndex = 0;
+            this.updatePosition();
+            this.updateSelection();
+
+            // Event listeners
+            this.wheelContent.addEventListener('mousedown', this.onStart.bind(this));
+            this.wheelContent.addEventListener('touchstart', this.onStart.bind(this));
+
+            document.addEventListener('mousemove', this.onMove.bind(this));
+            document.addEventListener('touchmove', this.onMove.bind(this));
+
+            document.addEventListener('mouseup', this.onEnd.bind(this));
+            document.addEventListener('touchend', this.onEnd.bind(this));
+
+            // Click en items
+            this.items.forEach((item, index) => {
+                item.addEventListener('click', () => {
+                    this.snapToIndex(index);
+                });
+            });
+
+            // Scroll con mouse
+            this.wheelContent.addEventListener('wheel', this.onWheel.bind(this));
+        }
+
+        onStart(e) {
+            this.isDragging = true;
+            this.startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            this.currentY = this.startY;
+            this.lastY = this.startY;
+            this.lastTime = Date.now();
+            this.velocity = 0;
+
+            this.wheelContent.style.transition = 'none';
+        }
+
+        onMove(e) {
+            if (!this.isDragging) return;
+
+            e.preventDefault();
+            const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            const deltaY = clientY - this.currentY;
+            const now = Date.now();
+
+            // Calcular velocidad
+            if (now - this.lastTime > 16) {
+                this.velocity = (clientY - this.lastY) / (now - this.lastTime);
+                this.lastY = clientY;
+                this.lastTime = now;
+            }
+
+            this.currentY = clientY;
+
+            // Actualizar posición con límites estrictos
+            const currentTranslate = this.getCurrentTranslate();
+            const newTranslate = Math.max(
+                Math.min(currentTranslate + deltaY, 0), // No puede ir arriba de 0 (primer item)
+                this.maxTranslate // No puede ir abajo del último item
+            );
+
+            this.wheelContent.style.transform = `translateY(${newTranslate}px)`;
+        }
+
+        onEnd() {
+            if (!this.isDragging) return;
+
+            this.isDragging = false;
+            this.wheelContent.style.transition = 'transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)';
+
+            // Aplicar inercia pero dentro de límites
+            const currentTranslate = this.getCurrentTranslate();
+            let finalTranslate = currentTranslate + (this.velocity * 100);
+
+            // Asegurar que esté dentro de los límites
+            finalTranslate = Math.max(Math.min(finalTranslate, 0), this.maxTranslate);
+
+            // Encontrar el índice más cercano
+            const newIndex = Math.round(-finalTranslate / this.itemHeight);
+            this.snapToIndex(Math.max(0, Math.min(newIndex, this.items.length - 1)));
+        }
+
+        onWheel(e) {
+            e.preventDefault();
+            const direction = e.deltaY > 0 ? 1 : -1;
+            const newIndex = Math.max(0, Math.min(this.currentIndex + direction, this.items.length - 1));
+            this.snapToIndex(newIndex);
+        }
+
+        snapToIndex(index) {
+            this.currentIndex = index;
+            this.updatePosition();
+            this.updateSelection();
+        }
+
+        updatePosition() {
+            const translateY = -this.currentIndex * this.itemHeight;
+            this.wheelContent.style.transform = `translateY(${translateY}px)`;
+        }
+
+        updateSelection() {
+            // Actualizar clases
+            this.items.forEach((item, index) => {
+                item.classList.toggle('selected', index === this.currentIndex);
+            });
+
+            // Actualizar input hidden
+            const selectedValue = this.items[this.currentIndex].dataset.value;
+            document.getElementById(this.inputId).value = selectedValue;
+        }
+
+        getCurrentTranslate() {
+            const style = window.getComputedStyle(this.wheelContent);
+            const matrix = new DOMMatrix(style.transform);
+            return matrix.m42;
+        }
+
+        // Método público para establecer valor
+        setValue(value) {
+            const index = Array.from(this.items).findIndex(item => item.dataset.value === value.toString());
+            if (index !== -1) {
+                this.snapToIndex(index);
+            }
+        }
+    }
+
+    // Inicializar wheel pickers
+    document.addEventListener('DOMContentLoaded', function () {
+        const yearPicker = new WheelPicker(
+            document.querySelector('[data-input="year"]'),
+            'year'
+        );
+
+        const monthPicker = new WheelPicker(
+            document.querySelector('[data-input="month"]'),
+            'month'
+        );
+
+        // Establecer valores por defecto al año/mes actual
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1;
+
+        yearPicker.setValue(currentYear);
+        monthPicker.setValue(currentMonth);
+
+        // Form submission
+        document.getElementById('reporteForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const year = document.getElementById('year').value;
+            const month = document.getElementById('month').value;
+            window.location.href = `/report/${year}/${month}`;
+        });
+    });
+
+    // Prevenir copia del texto protegido
+    document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'c' || e.key === 'v')) {
+            const target = e.target.closest('.no-copy');
+            if (target) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }
+    });
+
+    document.addEventListener('selectstart', function (e) {
+        if (e.target.closest('.no-copy')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    document.addEventListener('contextmenu', function (e) {
+        if (e.target.closest('.no-copy')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+</script>
+{% endblock %}

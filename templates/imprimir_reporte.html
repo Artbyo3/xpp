@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte {{ month_name }} {{ year }} - Impresión</title>
+    <style>
+        @media print {
+
+            /* Reset completo para impresión */
+            * {
+                background: white !important;
+                color: black !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+            }
+
+            body {
+                margin: 10px;
+                font-size: 10px;
+                line-height: 1.1;
+                font-family: Arial, sans-serif;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .no-screen {
+                display: block !important;
+            }
+
+            /* Header ultra optimizado */
+            .header {
+                border-bottom: 1px solid black;
+                padding-bottom: 3px;
+                margin-bottom: 6px;
+                text-align: left;
+            }
+
+            .header h1 {
+                font-size: 13px;
+                margin: 0;
+                font-weight: bold;
+            }
+
+            .header h2 {
+                font-size: 11px;
+                margin: 0;
+                font-weight: normal;
+            }
+
+            .header p {
+                font-size: 8px;
+                margin: 0;
+            }
+
+            /* Grid de transacciones ultra compacto */
+            .transactions-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 4px;
+                margin-top: 6px;
+            }
+
+            .day-card {
+                border: 1px solid black;
+                padding: 2px;
+                page-break-inside: avoid;
+                font-size: 9px;
+            }
+
+            .day-header {
+                font-weight: bold;
+                border-bottom: 1px solid black;
+                padding: 2px;
+                margin: -2px -2px 2px -2px;
+                font-size: 9px;
+                background: #f0f0f0 !important;
+            }
+
+            .transaction {
+                padding: 1px 0;
+                border-bottom: 1px dotted #ccc;
+                font-size: 8px;
+                line-height: 1.0;
+            }
+
+            .transaction:last-child {
+                border-bottom: none;
+            }
+
+            .amount {
+                font-weight: bold;
+                font-size: 9px;
+            }
+
+            .description {
+                font-size: 7px;
+                margin-top: 1px;
+                color: #444;
+                line-height: 1.0;
+            }
+
+            /* Sección de días vacíos ultra compacta */
+            .empty-days-section {
+                margin-top: 8px;
+                padding: 3px;
+                border: 1px solid black;
+                font-size: 8px;
+            }
+
+            .empty-days-section h3 {
+                margin: 0 0 2px 0;
+                font-size: 9px;
+            }
+
+            .empty-days-section p {
+                margin: 0;
+                line-height: 1.1;
+            }
+
+            /* Footer compacto */
+            .footer {
+                margin-top: 8px;
+                text-align: center;
+                font-size: 7px;
+                border-top: 1px solid black;
+                padding-top: 3px;
+            }
+
+            /* Total del mes */
+            .month-total {
+                text-align: center;
+                margin-bottom: 6px;
+                font-weight: bold;
+                font-size: 10px;
+                border: 1px solid black;
+                padding: 3px;
+                background: #f5f5f5 !important;
+            }
+
+            /* Watermark XPP - solo si hay espacio */
+            .xpp-watermark {
+                display: block;
+                text-align: right;
+                margin-top: 10px;
+                font-family: 'Courier New', monospace;
+                font-size: 16px;
+                font-weight: bold;
+                color: #999 !important;
+                opacity: 1;
+                transform: rotate(-10deg);
+                page-break-before: avoid;
+            }
+
+            /* Títulos de secciones compactos */
+            .section-title {
+                font-size: 9px;
+                font-weight: bold;
+                margin: 4px 0 3px 0;
+                border-bottom: 1px solid black;
+                padding-bottom: 1px;
+            }
+
+            /* Evitar saltos de página innecesarios */
+            .day-card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .empty-days-section {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            h1,
+            h2,
+            h3,
+            .section-title {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+
+            /* Márgenes de página mínimos */
+            @page {
+                margin: 0.5cm;
+                size: A4;
+            }
+
+            /* Optimización adicional para ahorro de tinta */
+            .day-header {
+                background: none !important;
+                border-bottom: 1px solid black;
+            }
+
+            /* Reducir espaciado entre elementos */
+            .transactions-grid .day-card {
+                margin-bottom: 0;
+            }
+
+            /* Evitar espacios en blanco innecesarios */
+            .transaction {
+                margin: 0;
+            }
+        }
+
+        @media screen {
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+                color: #333;
+                background: #f8f9fa;
+            }
+
+            .no-screen {
+                display: none !important;
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            color: #333;
+        }
+
+        .header {
+            text-align: left;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0 0 5px 0;
+            font-size: 1.8em;
+        }
+
+        .header h2 {
+            margin: 0 0 5px 0;
+            font-size: 1.4em;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            background: white;
+        }
+
+        .summary-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .summary-card p {
+            margin: 0;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .transactions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .day-card {
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 4px;
+            page-break-inside: avoid;
+            background: white;
+        }
+
+        .day-header {
+            font-weight: bold;
+            padding: 6px 8px;
+            margin: -8px -8px 8px -8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.9em;
+        }
+
+        .transaction {
+            padding: 4px 0;
+            border-bottom: 1px dotted #ccc;
+            font-size: 0.85em;
+        }
+
+        .transaction:last-child {
+            border-bottom: none;
+        }
+
+        .amount {
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .description {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .empty-days {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+
+        .footer {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 0.8em;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+
+        .xpp-ascii {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Imprimir</button>
+    <div class="header">
+        <h1>📊 {{ month_name }} {{ year }}</h1>
+        <p>{{ current_date.strftime('%d/%m/%Y') }}</p>
+    </div> <!-- Transacciones por día -->
+    <h2 class="section-title">Detalle por Días</h2> <!-- Total del mes -->
+    <div class="month-total">
+        {% set all_transactions = [] %}
+        {% for day in range(1, days_in_month + 1) %}
+        {% set day_transactions = transactions_by_day.get(day, []) %}
+        {% for transaction in day_transactions %}
+        {% set _ = all_transactions.append(transaction.amount) %}
+        {% endfor %}
+        {% endfor %}
+        TOTAL DEL MES: ${{ "%.2f"|format(all_transactions | sum) }}
+    </div>
+
+    <div class="transactions-grid">
+        {% for day in range(1, days_in_month + 1) %}
+        {% set day_transactions = transactions_by_day.get(day, []) %}
+        {% if day_transactions %}
+        {% set day_total = day_transactions | sum(attribute='amount') %} <div class="day-card">
+            <div class="day-header">
+                {{ day }}/{{ "{:02d}".format(month) }} - ${{ "%.2f"|format(day_total) }}
+            </div>{% for transaction in day_transactions %}
+            <div class="transaction">
+                <div class="amount">${{ "%.2f"|format(transaction.amount) }}</div>
+                {% if transaction.description and transaction.description.strip() and transaction.description.strip() !=
+                'Sin descripción' and transaction.description.strip() != 'No description' %}
+                <div class="description">{{ transaction.description[:25] }}{{ '...' if transaction.description|length >
+                    25 else '' }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Días sin transacciones - versión compacta -->
+    {% set empty_days = [] %}
+    {% for day in range(1, days_in_month + 1) %}
+    {% if not transactions_by_day.get(day, []) %}
+    {% set _ = empty_days.append(day) %}
+    {% endif %}
+    {% endfor %}
+
+    {% if empty_days %}
+    <div class="empty-days-section">
+        <h3>Días sin registro ({{ empty_days|length }} días):</h3>
+        <p>{{ empty_days|join(', ') }}</p>
+    </div>
+    {% endif %} <div class="footer">
+        <p>Reporte generado el: {{ current_date.strftime('%d/%m/%Y %H:%M') }} en <span class="xpp-ascii">XPP</span></p>
+    </div>
+
+    <script>
+        // Auto-imprimir si se accede directamente
+        if (window.location.search.includes('auto=true')) {
+            window.onload = function () {
+                setTimeout(() => window.print(), 500);
+            };
+        }
+    </script>
+</body>
+
+</html>

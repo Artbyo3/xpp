@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+
+{% block title %}Configuraciones - Registro de Ingresos{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-2">⚙️ Configuraciones</h1>
+    </div>
+
+    <!-- Layout principal con 2 columnas -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+
+        <!-- Columna izquierda: Personalización -->
+        <div class="space-y-8">
+            <!-- Logo personalizado -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <div class="flex items-center mb-6">
+                    <div class="bg-blue-100 p-3 rounded-xl mr-4">
+                        <span class="text-2xl">🖼️</span>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800">Logo Personalizado</h2>
+                        <p class="text-gray-600 text-sm">Cambia el emoji por tu propio logo</p>
+                    </div>
+                </div>
+
+                <!-- Logo actual -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Logo Actual</label>
+                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                        {% if user.logo_data %}
+                        <img src="{{ user.logo_data }}" alt="Logo actual"
+                            class="w-16 h-16 rounded-lg shadow-sm border border-gray-200">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">{{ user.logo_filename or 'logo.png' }}</p>
+                            <p class="text-xs text-gray-500">64x64 píxeles optimizado</p>
+                        </div>
+                        {% else %}
+                        <div
+                            class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">💰</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">Logo por defecto</p>
+                            <p class="text-xs text-gray-500">Emoji estándar</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Formulario para subir logo -->
+                {% if pil_available %}
+                <form method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <div>
+                        <label for="logo" class="block text-sm font-medium text-gray-700 mb-2">
+                            Subir Nuevo Logo
+                        </label>
+                        <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg,.gif,.webp"
+                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-lg">
+                        <p class="text-xs text-gray-500 mt-1">
+                            Formatos: PNG, JPG, JPEG, GIF, WEBP. Se redimensiona a 64x64px.
+                        </p>
+                    </div>
+
+                    <div class="flex space-x-3">
+                        <button type="submit"
+                            class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105">
+                            📤 Subir Logo
+                        </button>
+
+                        {% if user.logo_data %}
+                        <button type="submit" name="remove_logo" value="1"
+                            onclick="return confirm('¿Seguro que quieres eliminar tu logo personalizado?')"
+                            class="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 hover:text-red-800 font-medium rounded-lg transition-colors">
+                            🗑️ Eliminar
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
+                {% else %}
+                <!-- Mensaje cuando PIL no está disponible -->
+                <div class="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                    <h4 class="text-sm font-medium text-orange-800 mb-2 flex items-center">
+                        <span class="mr-2">⚠️</span>
+                        Función no disponible
+                    </h4>
+                    <p class="text-xs text-orange-700 mb-3">
+                        La subida de logos requiere la librería Pillow:
+                    </p>
+                    <code class="text-xs bg-gray-800 text-green-400 p-2 rounded block">
+                        pip install Pillow
+                    </code>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Información de cuenta -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <div class="flex items-center mb-6">
+                    <div class="bg-green-100 p-3 rounded-xl mr-4">
+                        <span class="text-2xl">👤</span>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800">Información de Cuenta</h2>
+                        <p class="text-gray-600 text-sm">Detalles de tu perfil</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+                        <p class="text-gray-800 font-semibold text-lg">{{ user.username }}</p>
+                    </div>
+
+                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <p class="text-gray-800">{{ user.email }}</p>
+                    </div>
+
+                    <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <h4 class="text-sm font-medium text-yellow-800 mb-2 flex items-center">
+                            <span class="mr-2">🔒</span>
+                            Seguridad
+                        </h4>
+                        <p class="text-sm text-yellow-700">
+                            Para cambiar contraseña o email, contacta al administrador.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Configuraciones y Datos -->
+        <div class="space-y-8">
+            <!-- Configuraciones de Interfaz -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <div class="flex items-center mb-6">
+                    <div class="bg-purple-100 p-3 rounded-xl mr-4">
+                        <span class="text-2xl">🎛️</span>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800">Preferencias de Interfaz</h2>
+                        <p class="text-gray-600 text-sm">Personaliza el comportamiento de la aplicación</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Confirmación de eliminar -->
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="flex-1 pr-4">
+                            <h3 class="font-medium text-gray-900 text-sm mb-1">Confirmar eliminación</h3>
+                            <p class="text-xs text-gray-600">Solicitar confirmación antes de eliminar transacciones</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="confirmDelete" class="sr-only peer" checked>
+                            <div
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Notificaciones automáticas -->
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="flex-1 pr-4">
+                            <h3 class="font-medium text-gray-900 text-sm mb-1">Notificaciones automáticas</h3>
+                            <p class="text-xs text-gray-600">Mostrar notificaciones de éxito y errores</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="showNotifications" class="sr-only peer" checked>
+                            <div
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Auto-recálculo -->
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="flex-1 pr-4">
+                            <h3 class="font-medium text-gray-900 text-sm mb-1">Recálculo automático</h3>
+                            <p class="text-xs text-gray-600">Recalcular totales cada 30 segundos</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="autoRecalc" class="sr-only peer" checked>
+                            <div
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botones de configuración -->
+                <div class="mt-6 space-y-3">
+                    <button onclick="saveSettings()"
+                        class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium py-3 transition-all duration-200 transform hover:scale-105 shadow-sm">
+                        💾 Guardar Configuraciones
+                    </button>
+
+                    <button onclick="resetToDefaults()"
+                        class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 font-medium transition-colors py-2 rounded-lg">
+                        🔄 Restaurar Valores por Defecto
+                    </button>
+                </div>
+            </div>
+
+            <!-- Gestión de Datos -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <div class="flex items-center mb-6">
+                    <div class="bg-orange-100 p-3 rounded-xl mr-4">
+                        <span class="text-2xl">💾</span>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800">Gestión de Datos</h2>
+                        <p class="text-gray-600 text-sm">Exporta, respalda o elimina tu información</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <button onclick="exportData()"
+                        class="w-full p-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 rounded-lg transition-all duration-200 text-left group">
+                        <div class="flex items-center">
+                            <div class="bg-blue-200 p-2 rounded-lg mr-3 group-hover:bg-blue-300 transition-colors">
+                                <span class="text-blue-800">📤</span>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-blue-900 text-sm mb-1">Exportar Datos</h3>
+                                <p class="text-xs text-blue-700">Descargar todas las transacciones en formato CSV</p>
+                            </div>
+                        </div>
+                    </button>
+
+                    <button
+                        onclick="showConfirmDialog('¿Eliminar todos los datos?', 'Esta acción eliminará permanentemente todas tus transacciones y no se puede deshacer.', clearAllData)"
+                        class="w-full p-4 bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 rounded-lg transition-all duration-200 text-left group">
+                        <div class="flex items-center">
+                            <div class="bg-red-200 p-2 rounded-lg mr-3 group-hover:bg-red-300 transition-colors">
+                                <span class="text-red-800">🗑️</span>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-red-900 text-sm mb-1">Limpiar Datos</h3>
+                                <p class="text-xs text-red-700">Eliminar permanentemente todas las transacciones</p>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Información adicional -->
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 class="text-sm font-medium text-gray-800 mb-2 flex items-center">
+                        <span class="mr-2">ℹ️</span>
+                        Información importante
+                    </h4>
+                    <ul class="text-xs text-gray-600 space-y-1">
+                        <li>• Los datos exportados incluyen fecha, monto y descripción</li>
+                        <li>• La eliminación de datos es irreversible</li>
+                        <li>• Se recomienda exportar antes de limpiar</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer de configuraciones -->
+    <div class="mt-8 text-center">
+
+        <a href="{{ url_for('dashboard') }}"
+            class="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors shadow-sm">
+            <span class="mr-2">🏠</span>
+            Volver al Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Modal de confirmación -->
+<div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+        <div class="text-center">
+            <div class="text-4xl mb-4">⚠️</div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Confirmar acción</h3>
+            <p id="confirmMessage" class="text-gray-600 mb-6"></p>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="closeConfirmModal()"
+                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-lg font-medium transition-colors">
+                Cancelar
+            </button>
+            <button id="confirmButton" onclick="confirmAction()"
+                class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition-colors">
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configuraciones por defecto
+    const defaultSettings = {
+        confirmDelete: true,
+        showNotifications: true,
+        autoRecalc: true
+    };
+
+    // Cargar configuraciones al iniciar
+    document.addEventListener('DOMContentLoaded', function () {
+        loadSettings();
+    });
+
+    function loadSettings() {
+        const settings = JSON.parse(localStorage.getItem('appSettings') || JSON.stringify(defaultSettings));
+
+        document.getElementById('confirmDelete').checked = settings.confirmDelete;
+        document.getElementById('showNotifications').checked = settings.showNotifications;
+        document.getElementById('autoRecalc').checked = settings.autoRecalc;
+    }
+
+    function saveSettings() {
+        const settings = {
+            confirmDelete: document.getElementById('confirmDelete').checked,
+            showNotifications: document.getElementById('showNotifications').checked,
+            autoRecalc: document.getElementById('autoRecalc').checked
+        };
+
+        localStorage.setItem('appSettings', JSON.stringify(settings));
+        showNotification('✅ Configuraciones guardadas exitosamente', 'success');
+    }
+
+    function resetToDefaults() {
+        showConfirmDialog(
+            '¿Restaurar configuraciones por defecto?',
+            'Esta acción restaurará todas las configuraciones a sus valores originales.',
+            function () {
+                document.getElementById('confirmDelete').checked = defaultSettings.confirmDelete;
+                document.getElementById('showNotifications').checked = defaultSettings.showNotifications;
+                document.getElementById('autoRecalc').checked = defaultSettings.autoRecalc;
+                saveSettings();
+                showNotification('🔄 Configuraciones restauradas a valores por defecto', 'info');
+            }
+        );
+    }
+
+    function exportData() {
+        showNotification('📤 Función de exportación en desarrollo', 'info');
+    }
+
+    function clearAllData() {
+        showNotification('🗑️ Función de limpieza en desarrollo', 'info');
+    }
+
+    // Sistema de confirmación moderno
+    let confirmCallback = null;
+
+    function showConfirmDialog(title, message, callback) {
+        document.getElementById('confirmMessage').textContent = message;
+        document.getElementById('confirmModal').classList.remove('hidden');
+        confirmCallback = callback;
+    }
+
+    function confirmAction() {
+        if (confirmCallback) {
+            confirmCallback();
+            confirmCallback = null;
+        }
+        closeConfirmModal();
+    }
+
+    function closeConfirmModal() {
+        document.getElementById('confirmModal').classList.add('hidden');
+        confirmCallback = null;
+    }
+
+    // Sistema de notificaciones
+    function showNotification(message, type = 'info') {
+        const existing = document.getElementById('notification');
+        if (existing) existing.remove();
+
+        const notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.className = `fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${type === 'success' ? 'bg-green-500 text-white' :
+            type === 'error' ? 'bg-red-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <span class="text-sm font-medium">${message}</span>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, 3000);
+    }
+
+    // Preview del logo antes de subir
+    {% if pil_available %}
+    document.getElementById('logo').addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                console.log('Archivo seleccionado:', file.name);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Animación de envío
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const submitBtn = this.querySelector('button[type="submit"]:not([name="remove_logo"])');
+        if (submitBtn && !this.querySelector('[name="remove_logo"]:checked')) {
+            submitBtn.innerHTML = '<span class="flex items-center justify-center">⏳ Procesando...</span>';
+            submitBtn.disabled = true;
+        }
+    });
+    {% endif %}
+
+    // Cerrar modal con Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeConfirmModal();
+        }
+    });
+</script>
+{% endblock %}

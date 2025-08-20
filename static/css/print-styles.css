@@ -1,0 +1,19 @@
+/* ESTILOS PARA OCULTAR ESTADÍSTICAS EN IMPRESIÓN */
+@media print {
+  .stats-grid,
+  .stat-card,
+  .total-transacciones,
+  .dias-activos,
+  .promedio-diario,
+  .estadisticas-container,
+  .resumen-estadisticas {
+    display: none !important;
+  }
+
+  /* Asegurar que el contenido principal se mantenga visible */
+  .transactions-table,
+  .reporte-content,
+  .tabla-transacciones {
+    display: block !important;
+  }
+}

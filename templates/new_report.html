@@ -1,0 +1,389 @@
+<!-- Sistema de actualización automática específico para creación de reportes -->
+<script>
+    // Función específica para detectar primera entrada en nuevo reporte
+    function detectFirstEntryInNewReport(formElement) {
+        console.log('🔍 Detectando primera entrada en nuevo reporte...');
+
+        // Buscar el contenedor del día específico del formulario
+        const dayContainer = formElement ? formElement.closest('.day-container, .bg-white.rounded-2xl, .bg-white.rounded-xl, .border') : null;
+
+        if (dayContainer) {
+            // Verificar si este día específico tiene entradas previas
+            const existingEntries = dayContainer.querySelector('table tbody tr, .transaction-list, .entry-item');
+            const hasMoneyDisplay = dayContainer.textContent.includes('$');
+            const hasTotalAmount = dayContainer.querySelector('.total-amount, .day-total, .text-green-600');
+
+            console.log('📊 Día tiene entradas previas:', !!existingEntries);
+            console.log('📊 Día muestra dinero:', hasMoneyDisplay);
+            console.log('📊 Día tiene total:', !!hasTotalAmount);
+
+            // Si no hay entradas, dinero o total en este día específico = primera entrada
+            if (!existingEntries || !hasMoneyDisplay || !hasTotalAmount) {
+                console.log('✅ Primera entrada del día detectada en nuevo reporte');
+                return true;
+            }
+        }
+
+        // Verificación global para el reporte completo
+        const allDayContainers = document.querySelectorAll('.day-container, .bg-white.rounded-2xl, .bg-white.rounded-xl');
+        const containersWithData = Array.from(allDayContainers).filter(container => {
+            return container.textContent.includes('$') ||
+                container.querySelector('table tbody tr, .transaction-list, .entry-item') ||
+                container.querySelector('.total-amount, .day-total');
+        });
+
+        console.log('📊 Total contenedores de días:', allDayContainers.length);
+        console.log('📊 Contenedores con datos:', containersWithData.length);
+
+        // Si no hay contenedores con datos = primer reporte completamente vacío
+        if (containersWithData.length === 0) {
+            console.log('✅ Primera entrada del reporte completo detectada');
+            return true;
+        }
+
+        console.log('❌ No es primera entrada - hay datos previos en el reporte');
+        return false;
+    }
+
+    // Sistema de actualización para creación de reportes
+    async function updateNewReportContent() {
+        try {
+            console.log('🔄 Actualizando contenido del nuevo reporte...');
+
+            const response = await fetch(window.location.href);
+            if (response.ok) {
+                const html = await response.text();
+                const parser = new DOMParser();
+                const newDocument = parser.parseFromHTML(html, 'text/html');
+
+                // Detectar si era primera entrada ANTES de actualizar
+                const wasFirstEntry = detectFirstEntryInNewReport();
+                console.log('📊 Era primera entrada antes:', wasFirstEntry);
+
+                // Verificar contenido nuevo
+                const newDayContainers = newDocument.querySelectorAll('.day-container, .bg-white.rounded-2xl, .bg-white.rounded-xl');
+                const newContainersWithData = Array.from(newDayContainers).filter(container => {
+                    return container.textContent.includes('$') || container.querySelector('table tbody tr');
+                });
+
+                console.log('📊 Nuevos contenedores con datos:', newContainersWithData.length);
+
+                // Si era primera entrada PERO ahora hay datos = recargar página
+                if (wasFirstEntry && newContainersWithData.length > 0) {
+                    console.log('🔄 DETECCIÓN CRÍTICA: Primera entrada en nuevo reporte - Forzando recarga');
+                    window.location.reload();
+                    return;
+                }
+
+                // Actualización AJAX para entradas subsecuentes
+                const currentMainContent = document.querySelector('.container, .max-w-7xl, .space-y-8, main');
+                const newMainContent = newDocument.querySelector('.container, .max-w-7xl, .space-y-8, main');
+
+                if (currentMainContent && newMainContent) {
+                    console.log('⚡ Actualizando contenido vía AJAX en nuevo reporte');
+
+                    // Guardar estado
+                    const scrollPosition = window.scrollY;
+
+                    // Actualizar contenido
+                    currentMainContent.innerHTML = newMainContent.innerHTML;
+
+                    // Restaurar estado
+                    window.scrollTo(0, scrollPosition);
+
+                    // Re-configurar eventos
+                    setTimeout(() => {
+                        setupNewReportEvents();
+                    }, 100);
+                } else {
+                    console.log('⚠️ Fallback: Actualización específica de elementos');
+                    updateSpecificNewReportElements(newDocument);
+                }
+            }
+        } catch (error) {
+            console.log('❌ Error al actualizar nuevo reporte:', error);
+            window.location.reload();
+        }
+    }
+
+    // Actualizar elementos específicos del nuevo reporte
+    function updateSpecificNewReportElements(newDocument) {
+        console.log('🔄 Actualizando elementos específicos del nuevo reporte...');
+
+        // Actualizar contenedores de días
+        const currentDayContainers = document.querySelectorAll('.day-container, .bg-white.rounded-2xl, .bg-white.rounded-xl');
+        const newDayContainers = newDocument.querySelectorAll('.day-container, .bg-white.rounded-2xl, .bg-white.rounded-xl');
+
+        // Si hay diferencia en número = recargar
+        if (newDayContainers.length !== currentDayContainers.length) {
+            console.log('🔄 Cambio en estructura de días - Recargando');
+            window.location.reload();
+            return;
+        }
+
+        // Actualizar contenido de cada día
+        currentDayContainers.forEach((currentContainer, index) => {
+            if (newDayContainers[index]) {
+                // Actualizar totales del día
+                const currentTotal = currentContainer.querySelector('.total-amount, .day-total, .text-green-600, .font-bold');
+                const newTotal = newDayContainers[index].querySelector('.total-amount, .day-total, .text-green-600, .font-bold');
+
+                if (currentTotal && newTotal && currentTotal.textContent !== newTotal.textContent) {
+                    console.log('🔄 Actualizando total del día', index);
+                    currentTotal.textContent = newTotal.textContent;
+                }
+
+                // Actualizar listas de entradas
+                const currentEntries = currentContainer.querySelector('table tbody, .transaction-list, .entries-list');
+                const newEntries = newDayContainers[index].querySelector('table tbody, .transaction-list, .entries-list');
+
+                if (currentEntries && newEntries) {
+                    console.log('🔄 Actualizando entradas del día', index);
+                    currentEntries.innerHTML = newEntries.innerHTML;
+                }
+            }
+        });
+    }
+
+    // Configurar eventos para formularios de nuevo reporte
+    function setupNewReportEvents() {
+        console.log('🔧 Configurando eventos para nuevo reporte...');
+
+        const forms = document.querySelectorAll('form');
+
+        forms.forEach(form => {
+            if (!form.hasAttribute('data-new-report-configured')) {
+                form.setAttribute('data-new-report-configured', 'true');
+
+                form.addEventListener('submit', async function (e) {
+                    if (this.action && (this.action.includes('/add') || this.action.includes('/save') || this.action.includes('/update'))) {
+                        e.preventDefault();
+
+                        const formData = new FormData(this);
+                        const submitButton = this.querySelector('button[type="submit"], input[type="submit"]');
+                        const originalText = submitButton ? (submitButton.innerHTML || submitButton.value) : '';
+
+                        // Detectar primera entrada ANTES del envío
+                        const isFirstEntry = detectFirstEntryInNewReport(this);
+                        console.log('📋 Primera entrada detectada en nuevo reporte:', isFirstEntry);
+
+                        // Estado de carga
+                        if (submitButton) {
+                            submitButton.disabled = true;
+                            if (submitButton.innerHTML !== undefined) {
+                                submitButton.innerHTML = '<span class="flex items-center justify-center">⏳ Guardando...</span>';
+                            } else {
+                                submitButton.value = 'Guardando...';
+                            }
+                        }
+
+                        try {
+                            const response = await fetch(this.action, {
+                                method: this.method || 'POST',
+                                body: formData
+                            });
+
+                            if (response.ok) {
+                                showNotification('✅ Entrada guardada exitosamente', 'success');
+
+                                // Limpiar formulario si es de agregar
+                                if (this.action.includes('/add')) {
+                                    this.reset();
+                                }
+
+                                if (isFirstEntry) {
+                                    console.log('🔄 Primera entrada del día en nuevo reporte - Forzando recarga');
+                                    showNotification('🔄 Primera entrada del día - Actualizando vista...', 'info');
+
+                                    setTimeout(() => {
+                                        console.log('🔄 Ejecutando recarga para primera entrada...');
+                                        window.location.reload();
+                                    }, 1000);
+
+                                    // Restaurar botón
+                                    if (submitButton) {
+                                        setTimeout(() => {
+                                            submitButton.disabled = false;
+                                            if (submitButton.innerHTML !== undefined) {
+                                                submitButton.innerHTML = originalText;
+                                            } else {
+                                                submitButton.value = originalText;
+                                            }
+                                        }, 800);
+                                    }
+                                } else {
+                                    console.log('⚡ Entrada adicional en nuevo reporte - Actualización AJAX');
+                                    setTimeout(async () => {
+                                        await updateNewReportContent();
+
+                                        // Restaurar botón
+                                        if (submitButton) {
+                                            submitButton.disabled = false;
+                                            if (submitButton.innerHTML !== undefined) {
+                                                submitButton.innerHTML = originalText;
+                                            } else {
+                                                submitButton.value = originalText;
+                                            }
+                                        }
+                                    }, 300);
+                                }
+
+                                // Verificación post-envío
+                                setTimeout(() => {
+                                    const stillFirstEntry = detectFirstEntryInNewReport();
+                                    if (stillFirstEntry) {
+                                        console.log('⚠️ ALERTA: Entrada no apareció en nuevo reporte - Recargando');
+                                        window.location.reload();
+                                    }
+                                }, 2500);
+
+                            } else {
+                                throw new Error('Error en servidor');
+                            }
+                        } catch (error) {
+                            showNotification('❌ Error al guardar entrada', 'error');
+
+                            // Restaurar botón
+                            if (submitButton) {
+                                submitButton.disabled = false;
+                                if (submitButton.innerHTML !== undefined) {
+                                    submitButton.innerHTML = originalText;
+                                } else {
+                                    submitButton.value = originalText;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    // Inicializar sistema para nuevo reporte
+    document.addEventListener('DOMContentLoaded', function () {
+        setupNewReportEvents();
+
+        // También configurar delegación de eventos global
+        document.addEventListener('submit', async function (e) {
+            const form = e.target;
+            if (form.tagName === 'FORM' &&
+                form.action &&
+                (form.action.includes('/add') || form.action.includes('/save') || form.action.includes('/update')) &&
+                !form.hasAttribute('data-new-report-configured')) {
+
+                e.preventDefault();
+
+                const formData = new FormData(form);
+                const submitButton = form.querySelector('button[type="submit"], input[type="submit"]');
+                const originalText = submitButton ? (submitButton.innerHTML || submitButton.value) : '';
+
+                // Detectar primera entrada
+                const isFirstEntry = detectFirstEntryInNewReport(form);
+                console.log('🔍 DETECCIÓN GLOBAL NUEVO REPORTE: Primera entrada:', isFirstEntry);
+
+                // Estado de carga
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    if (submitButton.innerHTML !== undefined) {
+                        submitButton.innerHTML = '<span class="flex items-center justify-center">⏳ Procesando...</span>';
+                    } else {
+                        submitButton.value = 'Procesando...';
+                    }
+                }
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: form.method || 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        showNotification('✅ Entrada guardada exitosamente', 'success');
+
+                        if (form.action.includes('/add')) {
+                            form.reset();
+                        }
+
+                        if (isFirstEntry) {
+                            console.log('🔄 Primera entrada detectada - Recarga inmediata');
+                            showNotification('🔄 Primera entrada del día - Actualizando vista...', 'info');
+
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            console.log('⚡ Entrada adicional - Actualización AJAX');
+                            setTimeout(async () => {
+                                await updateNewReportContent();
+                            }, 300);
+                        }
+
+                        // Restaurar botón
+                        setTimeout(() => {
+                            if (submitButton) {
+                                submitButton.disabled = false;
+                                if (submitButton.innerHTML !== undefined) {
+                                    submitButton.innerHTML = originalText;
+                                } else {
+                                    submitButton.value = originalText;
+                                }
+                            }
+                        }, isFirstEntry ? 800 : 300);
+
+                    } else {
+                        throw new Error('Error en servidor');
+                    }
+                } catch (error) {
+                    showNotification('❌ Error al procesar solicitud', 'error');
+
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        if (submitButton.innerHTML !== undefined) {
+                            submitButton.innerHTML = originalText;
+                        } else {
+                            submitButton.value = originalText;
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+    // Sistema de notificaciones si no existe
+    if (typeof showNotification !== 'function') {
+        function showNotification(message, type = 'info') {
+            const existing = document.getElementById('notification');
+            if (existing) existing.remove();
+
+            const notification = document.createElement('div');
+            notification.id = 'notification';
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${type === 'success' ? 'bg-green-500 text-white' :
+                    type === 'error' ? 'bg-red-500 text-white' :
+                        'bg-blue-500 text-white'
+                }`;
+
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <span class="text-sm font-medium">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200">
+                        ✕
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, 3000);
+        }
+    }
+</script>

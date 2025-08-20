@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema Seguro{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Bienvenida -->
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-lg shadow-lg p-8 border-l-4 border-blue-500 mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    🏠 Dashboard Principal
+                </h1>
+                <p class="text-gray-600">
+                    Bienvenido al sistema seguro de reportes
+                </p>
+            </div>
+            <div class="text-6xl opacity-50">
+                📊
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas de navegación -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Nuevo Reporte -->
+        <a href="{{ url_for('nuevo_reporte') }}"
+            class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border border-gray-200 hover:border-blue-300 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-4xl group-hover:scale-110 transition-transform">📈</div>
+                <div class="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">→</div>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Nuevo Reporte</h3>
+            <p class="text-gray-600 text-sm">Crear un nuevo reporte mensual</p>
+        </a>
+
+        <!-- Historial -->
+        <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 opacity-75">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-4xl">📋</div>
+                <div class="text-gray-400">🔒</div>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Historial</h3>
+            <p class="text-gray-600 text-sm">Ver reportes anteriores (próximamente)</p>
+        </div>
+
+        <!-- Configuración -->
+        <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 opacity-75">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-4xl">⚙️</div>
+                <div class="text-gray-400">🔒</div>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Configuración</h3>
+            <p class="text-gray-600 text-sm">Ajustes del sistema (próximamente)</p>
+        </div>
+    </div>
+
+    <!-- Información del sistema -->
+    <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+            <span class="mr-2">🛡️</span>
+            Estado de Seguridad
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                <span class="text-green-500 mr-3">✅</span>
+                <div>
+                    <div class="font-medium text-green-800">Sesión Activa</div>
+                    <div class="text-sm text-green-600">Autenticación válida</div>
+                </div>
+            </div>
+
+            <div class="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                <span class="text-green-500 mr-3">🔐</span>
+                <div>
+                    <div class="font-medium text-green-800">Conexión Segura</div>
+                    <div class="text-sm text-green-600">Headers de seguridad activos</div>
+                </div>
+            </div>
+
+            <div class="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <span class="text-blue-500 mr-3">⏰</span>
+                <div>
+                    <div class="font-medium text-blue-800">Sesión Válida</div>
+                    <div class="text-sm text-blue-600">Expira en 24 horas</div>
+                </div>
+            </div>
+
+            <div class="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <span class="text-blue-500 mr-3">📡</span>
+                <div>
+                    <div class="font-medium text-blue-800">Monitoreo Activo</div>
+                    <div class="text-sm text-blue-600">Verificación automática</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="mt-8 text-center">
+        <p class="text-sm text-gray-500">
+            💡 Sistema desarrollado con medidas de seguridad avanzadas
+        </p>
+    </div>
+</div>
+
+<script>
+    // Actualizar tiempo de sesión en tiempo real
+    function updateSessionTime() {
+        const sessionElements = document.querySelectorAll('[data-session-time]');
+        sessionElements.forEach(element => {
+            // Aquí podrías actualizar el tiempo restante de sesión
+            // Por ahora solo mostramos que está activa
+        });
+    }
+
+    // Actualizar cada minuto
+    setInterval(updateSessionTime, 60000);
+    updateSessionTime();
+</script>
+{% endblock %}

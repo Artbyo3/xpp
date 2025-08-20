@@ -1,0 +1,814 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Registro de Ingresos{% endblock %}
+
+{% block content %}
+<!-- CSS personalizado para animaciones -->
+<style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    .animate-fadeInUp {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .animate-pulse-custom {
+        animation: pulse 2s infinite;
+    }
+
+    .card-hover {
+        transition: all 0.3s ease;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+</style>
+
+<div class="space-y-8 animate-fadeInUp">
+    <!-- Header mejorado con información en tiempo real -->
+    <div
+        class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-white opacity-10 transform skew-y-1"></div>
+        <div class="relative z-10 flex items-center justify-between">
+            <div>
+                <h2 class="text-3xl font-bold mb-2">💰 Dashboard de Ingresos</h2>
+                <p class="text-blue-100 text-lg">Gestiona y visualiza tus ingresos digitales</p>
+                <div class="mt-4 flex items-center space-x-4 text-sm text-blue-200">
+                    <span>📅 Hoy: {{ current_date.strftime('%d/%m/%Y') }}</span>
+                    <span id="current-time" class="animate-pulse-custom">⏰ --:--</span>
+                </div>
+            </div>
+            <div class="text-6xl opacity-20 animate-pulse-custom">💎</div>
+        </div>
+    </div>
+
+    <!-- Indicadores de rendimiento en tiempo real -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+            <div class="text-center">
+                <div class="text-green-600 text-2xl mb-2">📈</div>
+                <p class="text-xs text-green-700 font-medium">Meta Mensual</p>
+                <p class="text-lg font-bold text-green-800">{{ "%.1f"|format((current_month_income / (daily_average *
+                    30) * 100) if daily_average > 0 else 0) }}%</p>
+            </div>
+        </div>
+        <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-200 no-print">
+            <div class="text-center">
+                <div class="text-blue-600 text-2xl mb-2">🎯</div>
+                <p class="text-xs text-blue-700 font-medium">Días Activos</p>
+                <p class="text-lg font-bold text-blue-800">{{ ((current_date.day if current_month_income > 0 else 0) /
+                    current_date.day * 100)|round(1) }}%</p>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-4 border border-purple-200">
+            <div class="text-center">
+                <div class="text-purple-600 text-2xl mb-2">⚡</div>
+                <p class="text-xs text-purple-700 font-medium">Tendencia</p>
+                <p class="text-lg font-bold text-purple-800">📊 +{{ "%.1f"|format((current_month_income /
+                    (recent_months[0].total if recent_months else 1) * 100 - 100) if recent_months else 0) }}%</p>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-4 border border-orange-200">
+            <div class="text-center">
+                <div class="text-orange-600 text-2xl mb-2">🔥</div>
+                <p class="text-xs text-orange-700 font-medium">Racha</p>
+                <p class="text-lg font-bold text-orange-800">{{ current_date.day if current_month_income > 0 else 0 }}
+                    días</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Widget de acceso rápido -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                <span class="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center mr-2 text-sm">⚡</span>
+                Acceso Rápido
+            </h3>
+            <button onclick="toggleQuickAdd()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Quick Add Form -->
+        <div id="quick-add-form" class="hidden mb-4 p-4 bg-gray-50 rounded-lg border">
+            <h4 class="font-semibold text-gray-700 mb-3">💸 Agregar Ingreso Rápido - Hoy</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input type="number" id="quick-amount" placeholder="Monto"
+                    class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <input type="text" id="quick-description" placeholder="Descripción (opcional)"
+                    class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <button onclick="addQuickTransaction()"
+                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    Agregar
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <button onclick="addPresetAmount(50)"
+                class="bg-green-100 hover:bg-green-200 text-green-800 px-4 py-2 rounded-lg font-medium transition-colors">+$50</button>
+            <button onclick="addPresetAmount(100)"
+                class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-lg font-medium transition-colors">+$100</button>
+            <button onclick="addPresetAmount(200)"
+                class="bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-2 rounded-lg font-medium transition-colors">+$200</button>
+            <button onclick="addPresetAmount(500)"
+                class="bg-orange-100 hover:bg-orange-200 text-orange-800 px-4 py-2 rounded-lg font-medium transition-colors">+$500</button>
+        </div>
+    </div>
+
+    <!-- Métricas principales con animaciones mejoradas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div
+            class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300 card-hover">
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Ingresos</p>
+                    <p class="text-3xl font-bold text-green-600 mt-2" id="total-income">${{ "%.2f"|format(total_income)
+                        }}</p>
+                    <div class="w-full bg-green-100 rounded-full h-2 mt-3">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center animate-pulse-custom">
+                    <span class="text-green-600 text-2xl">💰</span>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300 card-hover">
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Este Mes</p>
+                    <p class="text-3xl font-bold text-blue-600 mt-2" id="current-month-income">${{
+                        "%.2f"|format(current_month_income) }}</p>
+                    <div class="w-full bg-blue-100 rounded-full h-2 mt-3">
+                        <div class="bg-blue-500 h-2 rounded-full"
+                            style="width: {{ ((current_month_income / (daily_average * 30) * 100) if daily_average > 0 else 0) | round(2) }}%;">
+                        </div>
+                    </div>
+                </div>
+                <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span class="text-blue-600 text-2xl">📅</span>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition-all duration-300 card-hover">
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Promedio Diario</p>
+                    <p class="text-3xl font-bold text-purple-600 mt-2">${{ "%.2f"|format(daily_average) }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Últimos {{ current_date.day }} días</p>
+                </div>
+                <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span class="text-purple-600 text-2xl">📊</span>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-orange-500 hover:shadow-xl transition-all duration-300 card-hover">
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Transacciones</p>
+                    <p class="text-3xl font-bold text-orange-600 mt-2">{{ total_transactions }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Total registradas</p>
+                </div>
+                <div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center">
+                    <span class="text-orange-600 text-2xl">📝</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones rápidas mejoradas -->
+    <div class="bg-white rounded-2xl shadow-lg p-8">
+        <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">⚡</span>
+            Acciones Rápidas
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="{{ url_for('new_report') }}"
+                class="group bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center">
+                <span class="mr-3 text-xl">➕</span>
+                Nuevo Reporte Mensual
+            </a>
+            <a href="{{ url_for('monthly_report', year=current_year, month=current_month) }}"
+                class="group bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center">
+                <span class="mr-3 text-xl">✏️</span>
+                Editar Mes Actual
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <a href="{{ url_for('configuraciones') }}"
+                class="group bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center">
+                <span class="mr-3 text-xl">⚙️</span>
+                Configuraciones
+            </a>
+            <button onclick="showStatsAlert()"
+                class="group bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center">
+                <span class="mr-3 text-xl">📊</span>
+                Ver Estadísticas
+            </button>
+        </div>
+    </div>
+
+    <!-- Últimos reportes mejorados -->
+    {% if recent_months %}
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gray-50 px-8 py-6 border-b border-gray-200">
+            <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                <span class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">📈</span>
+                Últimos Meses
+            </h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Período</th>
+                        <th class="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Total</th>
+                        <th class="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for month in recent_months %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-8 py-6">
+                            <div class="text-sm font-semibold text-gray-900">{{ month.month }}/{{ month.year }}</div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="text-lg font-bold text-green-600">${{ "%.2f"|format(month.total) }}</div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex space-x-3">
+                                <a href="{{ url_for('monthly_report', year=month.year, month=month.month) }}"
+                                    class="text-blue-600 hover:text-blue-800 font-medium transition-colors">Ver/Editar</a>
+                                <a href="{{ url_for('print_report', year=month.year, month=month.month) }}"
+                                    class="text-green-600 hover:text-green-800 font-medium transition-colors"
+                                    target="_blank">Imprimir</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- JavaScript para funcionalidad interactiva -->
+<script>
+    // Actualizar reloj en tiempo real
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        const timeElement = document.getElementById('current-time');
+        if (timeElement) {
+            timeElement.textContent = `⏰ ${timeString}`;
+        }
+    }
+
+    // Actualizar cada minuto
+    setInterval(updateTime, 60000);
+    updateTime(); // Ejecutar inmediatamente
+
+    // Toggle para el formulario de agregar rápido
+    function toggleQuickAdd() {
+        const form = document.getElementById('quick-add-form');
+        if (form.classList.contains('hidden')) {
+            form.classList.remove('hidden');
+            form.style.display = 'block';
+            form.style.animation = 'fadeInUp 0.3s ease-out';
+        } else {
+            form.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => {
+                form.classList.add('hidden');
+            }, 300);
+        }
+    }
+
+    // Agregar transacción rápida
+    function addQuickTransaction() {
+        const amount = document.getElementById('quick-amount').value;
+        const description = document.getElementById('quick-description').value;
+
+        if (!amount || amount <= 0) {
+            showNotification('Por favor ingresa un monto válido', 'error');
+            return;
+        }
+
+        const today = new Date();
+        const data = {
+            year: today.getFullYear(),
+            month: today.getMonth() + 1,
+            day: today.getDate(),
+            amount: parseFloat(amount),
+            description: description
+        };
+
+        fetch('/add-transaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Transacción agregada exitosamente', 'success');
+                    document.getElementById('quick-amount').value = '';
+                    document.getElementById('quick-description').value = '';
+                    setTimeout(() => {
+                        location.reload(); // Recargar para actualizar las métricas
+                    }, 1000);
+                } else {
+                    showNotification(data.message || 'Error al agregar transacción', 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error de conexión', 'error');
+            });
+    }
+
+    // Agregar monto predefinido
+    function addPresetAmount(amount) {
+        const today = new Date();
+        const data = {
+            year: today.getFullYear(),
+            month: today.getMonth() + 1,
+            day: today.getDate(),
+            amount: amount,
+            description: `Ingreso rápido de $${amount}`
+        };
+
+        fetch('/add-transaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(`$${amount} agregado exitosamente`, 'success');
+                    // Animar el botón
+                    const button = event.target;
+                    button.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        button.style.transform = 'scale(1)';
+                    }, 150);
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    showNotification(data.message || 'Error al agregar transacción', 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error de conexión', 'error');
+            });
+    }
+
+    // Sistema de notificaciones
+    function showNotification(message, type = 'info') {
+        // Remover notificación existente
+        const existing = document.getElementById('notification');
+        if (existing) {
+            existing.remove();
+        }
+
+        const notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${type === 'success' ? 'bg-green-500 text-white' :
+            type === 'error' ? 'bg-red-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <span class="mr-2">${type === 'success' ? '✅' :
+                type === 'error' ? '❌' :
+                    'ℹ️'
+            }</span>
+                <span>${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                    ✕
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Auto-remover después de 5 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }
+        }, 5000);
+    }    // Manejar Enter en el formulario rápido
+    document.addEventListener('DOMContentLoaded', function () {
+        setupDashboardEvents(); // Usar la nueva función centralizada
+    });// Función para mostrar estadísticas
+    function showStatsAlert() {
+        const totalIncome = document.getElementById('total-income').textContent;
+        const currentMonth = document.getElementById('current-month-income').textContent;
+        const transactionCount = "{{ total_transactions }}";
+
+        showNotification(`📊 Estadísticas: Total ${totalIncome}, Este mes ${currentMonth}, ${transactionCount} transacciones`, 'info');
+    }    // Sistema de actualización automática después de agregar transacciones
+    function refreshDashboardData() {
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const newDocument = parser.parseFromHTML(html, 'text/html');
+
+                // NUEVA DETECCIÓN: Verificar si había contenido vacío antes
+                const wasEmpty = checkIfEmptyDayBefore();
+                console.log('📊 Dashboard estaba vacío antes:', wasEmpty);
+
+                // Verificar si el nuevo contenido tiene datos
+                const newContent = newDocument.querySelector('.space-y-8.animate-fadeInUp');
+                const hasNewTransactions = newContent && (
+                    newContent.textContent.includes('$') ||
+                    newContent.querySelector('table tbody tr') ||
+                    newContent.querySelectorAll('.bg-white.rounded-2xl').length > 2
+                );
+
+                console.log('📊 Nuevo contenido tiene transacciones:', hasNewTransactions);
+
+                // Si estaba vacío PERO ahora hay transacciones, recargar página
+                if (wasEmpty && hasNewTransactions) {
+                    console.log('🔄 DETECCIÓN CRÍTICA: Primera transacción del día - Recargando');
+                    window.location.reload();
+                    return;
+                }
+
+                // Actualizar contenido completo para manejar nuevos elementos
+                const currentMainContent = document.querySelector('.space-y-8.animate-fadeInUp');
+                const newMainContent = newDocument.querySelector('.space-y-8.animate-fadeInUp');
+
+                if (currentMainContent && newMainContent) {
+                    // Guardar estado de formularios y scroll
+                    const scrollY = window.scrollY;
+                    const quickAmountValue = document.getElementById('quick-amount')?.value || '';
+                    const quickDescValue = document.getElementById('quick-description')?.value || '';
+
+                    // Actualizar todo el contenido
+                    currentMainContent.innerHTML = newMainContent.innerHTML;
+
+                    // Restaurar estados
+                    window.scrollTo(0, scrollY);
+                    if (document.getElementById('quick-amount')) {
+                        document.getElementById('quick-amount').value = quickAmountValue;
+                    }
+                    if (document.getElementById('quick-description')) {
+                        document.getElementById('quick-description').value = quickDescValue;
+                    }
+
+                    // Re-configurar eventos
+                    setTimeout(() => {
+                        setupDashboardEvents();
+                        updateTime(); // Reiniciar reloj
+                    }, 100);
+                } else {
+                    // Fallback: actualizar elementos específicos
+                    updateSpecificDashboardElements(newDocument);
+                }
+            })
+            .catch(error => {
+                console.log('Error al actualizar datos del dashboard:', error);
+                // En caso de error, recargar
+                window.location.reload();
+            });
+    }
+
+    // Nueva función para detectar si el día estaba vacío
+    function checkIfEmptyDayBefore() {
+        // Buscar indicadores de día vacío
+        const emptyIndicators = [
+            '.text-center.py-12',
+            '.text-gray-400',
+            '.empty-state',
+            '[class*="empty"]'
+        ];
+
+        // Verificar texto de estado vacío
+        const bodyText = document.body.textContent.toLowerCase();
+        const emptyTexts = [
+            'sin transacciones',
+            'no hay registros',
+            'día está vacío',
+            'comienza agregando',
+            'primera transacción'
+        ];
+
+        for (const text of emptyTexts) {
+            if (bodyText.includes(text)) {
+                console.log('✅ Día vacío detectado por texto:', text);
+                return true;
+            }
+        }
+
+        // Verificar elementos visuales de vacío
+        for (const selector of emptyIndicators) {
+            const element = document.querySelector(selector);
+            if (element && element.textContent.includes('sin') || element.textContent.includes('vacío')) {
+                console.log('✅ Día vacío detectado por elemento visual');
+                return true;
+            }
+        }
+
+        // Verificar si no hay transacciones en tablas
+        const tableRows = document.querySelectorAll('table tbody tr');
+        const rowsWithData = Array.from(tableRows).filter(row => {
+            return row.textContent.trim() !== '' && row.children.length > 0;
+        });
+
+        if (rowsWithData.length === 0) {
+            console.log('✅ Día vacío detectado: No hay filas con datos');
+            return true;
+        }
+
+        // Verificar si hay muy poco contenido significativo
+        const significantContent = document.querySelectorAll('.bg-white.rounded-2xl, .bg-white.rounded-xl');
+        const contentWithTransactions = Array.from(significantContent).filter(el => {
+            return el.textContent.includes('$') || el.textContent.includes('transacción');
+        });
+
+        if (contentWithTransactions.length <= 1) {
+            console.log('✅ Día vacío detectado: Poco contenido con transacciones');
+            return true;
+        }
+
+        console.log('❌ El día NO estaba vacío');
+        return false;
+    }
+
+    // Actualizar elementos específicos como fallback
+    function updateSpecificDashboardElements(newDocument) {
+        // Actualizar métricas principales
+        const metricsSelectors = [
+            '#total-income',
+            '#current-month-income'
+        ];
+
+        metricsSelectors.forEach(selector => {
+            const currentElement = document.querySelector(selector);
+            const newElement = newDocument.querySelector(selector);
+            if (currentElement && newElement) {
+                // Animación de cambio
+                currentElement.style.opacity = '0.5';
+                setTimeout(() => {
+                    currentElement.textContent = newElement.textContent;
+                    currentElement.style.opacity = '1';
+                }, 200);
+            }
+        });
+
+        // Actualizar tabla de meses recientes si existe
+        const currentTable = document.querySelector('tbody');
+        const newTable = newDocument.querySelector('tbody');
+        if (currentTable && newTable) {
+            currentTable.innerHTML = newTable.innerHTML;
+        }
+
+        // Actualizar indicadores de rendimiento
+        const indicators = document.querySelectorAll('.text-lg.font-bold');
+        const newIndicators = newDocument.querySelectorAll('.text-lg.font-bold');
+        indicators.forEach((indicator, index) => {
+            if (newIndicators[index]) {
+                indicator.textContent = newIndicators[index].textContent;
+            }
+        });
+    }
+
+    // Configurar eventos del dashboard
+    function setupDashboardEvents() {
+        // Configurar formularios de transacciones rápidas
+        const quickAmountInput = document.getElementById('quick-amount');
+        const quickDescriptionInput = document.getElementById('quick-description');
+
+        if (quickAmountInput && !quickAmountInput.hasAttribute('data-configured')) {
+            quickAmountInput.setAttribute('data-configured', 'true');
+            quickAmountInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    addQuickTransaction();
+                }
+            });
+        }
+
+        if (quickDescriptionInput && !quickDescriptionInput.hasAttribute('data-configured')) {
+            quickDescriptionInput.setAttribute('data-configured', 'true');
+            quickDescriptionInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    addQuickTransaction();
+                }
+            });
+        }
+    }
+
+    // Inicializar eventos cuando carga la página
+    document.addEventListener('DOMContentLoaded', function () {
+        setupDashboardEvents();
+    });
+
+    // Modificar las funciones existentes para incluir actualización automática
+    const originalAddQuickTransaction = addQuickTransaction;
+    addQuickTransaction = function () {
+        const amount = document.getElementById('quick-amount').value;
+        const description = document.getElementById('quick-description').value;
+
+        if (!amount || amount <= 0) {
+            showNotification('Por favor ingresa un monto válido', 'error');
+            return;
+        }
+
+        const today = new Date();
+        const data = {
+            year: today.getFullYear(),
+            month: today.getMonth() + 1,
+            day: today.getDate(),
+            amount: parseFloat(amount),
+            description: description
+        };
+
+        fetch('/add-transaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json()).then(data => {
+                if (data.success) {
+                    showNotification('✅ Transacción agregada exitosamente', 'success');
+                    document.getElementById('quick-amount').value = '';
+                    document.getElementById('quick-description').value = '';
+
+                    // NUEVA LÓGICA: Detectar si era el primer ingreso del día
+                    const wasEmptyDay = checkIfEmptyDayBefore();
+                    console.log('📊 Era día vacío antes de agregar:', wasEmptyDay);
+
+                    if (wasEmptyDay) {
+                        console.log('🔄 Primera transacción del día detectada - Recarga inmediata');
+                        showNotification('🔄 Primera transacción del día - Actualizando vista...', 'info');
+
+                        setTimeout(() => {
+                            console.log('🔄 Ejecutando recarga para primera transacción...');
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        console.log('⚡ Transacción adicional - Actualización AJAX');
+                        // Actualizar dashboard inmediatamente para transacciones subsecuentes
+                        setTimeout(() => {
+                            refreshDashboardData();
+                        }, 300);
+                    }
+
+                    // VERIFICACIÓN ADICIONAL: Programar check de seguridad
+                    schedulePostSubmitVerification();
+
+                } else {
+                    showNotification(data.message || 'Error al agregar transacción', 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error de conexión', 'error');
+            });
+    };
+
+    const originalAddPresetAmount = addPresetAmount;
+    addPresetAmount = function (amount) {
+        const today = new Date();
+        const data = {
+            year: today.getFullYear(),
+            month: today.getMonth() + 1,
+            day: today.getDate(),
+            amount: amount,
+            description: `Ingreso rápido de $${amount}`
+        };
+
+        fetch('/add-transaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json()).then(data => {
+                if (data.success) {
+                    showNotification(`✅ $${amount} agregado exitosamente`, 'success');
+
+                    // Animar el botón
+                    const button = event.target;
+                    button.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        button.style.transform = 'scale(1)';
+                    }, 150);
+
+                    // NUEVA LÓGICA: Detectar si era el primer ingreso del día  
+                    const wasEmptyDay = checkIfEmptyDayBefore();
+                    console.log('📊 Era día vacío antes de agregar preset:', wasEmptyDay);
+
+                    if (wasEmptyDay) {
+                        console.log('🔄 Primera transacción preset del día detectada - Recarga inmediata');
+                        showNotification('🔄 Primera transacción del día - Actualizando vista...', 'info');
+
+                        setTimeout(() => {
+                            console.log('🔄 Ejecutando recarga para primera transacción preset...');
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        console.log('⚡ Transacción preset adicional - Actualización AJAX');
+                        // Actualizar dashboard inmediatamente para transacciones subsecuentes
+                        setTimeout(() => {
+                            refreshDashboardData();
+                        }, 300);
+                    }
+
+                    // VERIFICACIÓN ADICIONAL: Programar check de seguridad
+                    schedulePostSubmitVerification();
+
+                } else {
+                    showNotification(data.message || 'Error al agregar transacción', 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error de conexión', 'error');
+            });
+    };
+
+    // Verificación post-envío específica para transacciones rápidas
+    function schedulePostSubmitVerification() {
+        setTimeout(() => {
+            console.log('🔍 Verificación post-envío del dashboard...');
+
+            const stillEmpty = checkIfEmptyDayBefore();
+            const hasTransactions = document.querySelectorAll('table tbody tr').length > 0;
+            const hasContentWithMoney = document.body.textContent.includes('$');
+
+            console.log('🔍 Verificación: Aún vacío:', stillEmpty);
+            console.log('🔍 Verificación: Tiene transacciones:', hasTransactions);
+            console.log('🔍 Verificación: Tiene contenido con $:', hasContentWithMoney);
+
+            if (stillEmpty || (!hasTransactions && !hasContentWithMoney)) {
+                console.log('⚠️ ALERTA: La transacción rápida no apareció');
+                console.log('🔄 Forzando recarga de seguridad...');
+                showNotification('🔄 Sincronizando transacción...', 'info');
+                window.location.reload();
+            } else {
+                console.log('✅ Verificación exitosa: La transacción está visible en el dashboard');
+            }
+        }, 2500);
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,190 @@
+/* Estilos personalizados para el sistema de registro de ingresos */
+
+/* Mejoras para impresión */
+@media print {
+  /* Ocultar elementos que no se deben imprimir */
+  .no-print,
+  nav,
+  .navigation,
+  button:not(.print-button),
+  .action-buttons {
+    display: none !important;
+  }
+
+  /* Ajustar colores para impresión */
+  body {
+    background: white !important;
+    color: black !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Remover sombras y efectos en impresión */
+  .shadow,
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl {
+    box-shadow: none !important;
+  }
+
+  /* Ajustar tamaños de fuente para impresión */
+  .print-title {
+    font-size: 24px !important;
+    font-weight: bold !important;
+  }
+
+  .print-subtitle {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+  }
+
+  /* Forzar salto de página */
+  .page-break {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  /* Evitar salto de página dentro de elementos */
+  .no-page-break {
+    page-break-inside: avoid;
+  }
+
+  /* Mantener gradientes en impresión para encabezados importantes */
+  .print-preserve-color {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
+/* Animaciones suaves para transiciones */
+.smooth-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Efectos hover mejorados */
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Indicadores de carga */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mejoras para formularios */
+.form-input:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+}
+
+/* Estilos para tooltips simples */
+.tooltip {
+  position: relative;
+}
+
+.tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 5px;
+}
+
+.tooltip:hover::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #1f2937;
+  z-index: 1000;
+}
+
+/* Animaciones para elementos que aparecen */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive improvements */
+@media (max-width: 640px) {
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+
+  .mobile-full {
+    width: 100% !important;
+  }
+}
+
+/* Accessibility improvements */
+.focus\:ring-enhanced:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  outline: none;
+}
+
+/* Status indicators */
+.status-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.status-warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.status-error {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.status-info {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
