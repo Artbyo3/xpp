@@ -815,4 +815,5 @@ if __name__ == '__main__':
     init_db()
     
     # Run application
-    app.run(debug=True)
+    debug_mode = os.environ.get('FLASK_ENV') != 'production'
+    app.run(debug=debug_mode, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
