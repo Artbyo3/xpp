@@ -15,7 +15,7 @@
             <div>
                 <label for="year" class="block text-sm font-medium text-gray-700 mb-2">Año</label>
                 <div class="custom-wheel-picker" data-input="year">
-                    <input type="hidden" id="year" name="year" value="2025">
+                    <input type="hidden" id="year" name="year" value="{{ current_year or 2024 }}">
                     <div class="wheel-container">
                         <div class="wheel-overlay-top"></div>
                         <div class="wheel-selector"></div>
@@ -32,7 +32,7 @@
             <div>
                 <label for="month" class="block text-sm font-medium text-gray-700 mb-2">Mes</label>
                 <div class="custom-wheel-picker" data-input="month">
-                    <input type="hidden" id="month" name="month" value="1">
+                    <input type="hidden" id="month" name="month" value="{{ current_month or 1 }}">
                     <div class="wheel-container">
                         <div class="wheel-overlay-top"></div>
                         <div class="wheel-selector"></div>
@@ -52,6 +52,18 @@
                             <div class="wheel-item" data-value="12">Diciembre</div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Botón de test para debugging -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <button type="button" id="debugBtn" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg">
+                    🔍 Debug: Ver Valores Actuales
+                </button>
+                <div id="debugInfo" class="mt-2 text-sm text-gray-600 hidden">
+                    <p><strong>Año:</strong> <span id="debugYear"></span></p>
+                    <p><strong>Mes:</strong> <span id="debugMonth"></span></p>
+                    <p><strong>URL que se generaría:</strong> <span id="debugUrl"></span></p>
                 </div>
             </div>
 
@@ -207,7 +219,7 @@
             this.inputId = inputId;
             this.wheelContent = container.querySelector('.wheel-content');
             this.items = container.querySelectorAll('.wheel-item');
-            this.currentIndex = 0;
+            this.currentIndex = -1; // No inicializar en 0, esperar a setValue
             this.isDragging = false;
             this.startY = 0;
             this.currentY = 0;
@@ -222,11 +234,6 @@
         }
 
         init() {
-            // Inicializar en el primer elemento (enero para meses, primer año para años)
-            this.currentIndex = 0;
-            this.updatePosition();
-            this.updateSelection();
-
             // Event listeners
             this.wheelContent.addEventListener('mousedown', this.onStart.bind(this));
             this.wheelContent.addEventListener('touchstart', this.onStart.bind(this));
@@ -250,58 +257,37 @@
 
         onStart(e) {
             this.isDragging = true;
-            this.startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            this.startY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
             this.currentY = this.startY;
             this.lastY = this.startY;
             this.lastTime = Date.now();
             this.velocity = 0;
-
-            this.wheelContent.style.transition = 'none';
         }
 
         onMove(e) {
             if (!this.isDragging) return;
-
             e.preventDefault();
-            const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-            const deltaY = clientY - this.currentY;
-            const now = Date.now();
 
-            // Calcular velocidad
-            if (now - this.lastTime > 16) {
-                this.velocity = (clientY - this.lastY) / (now - this.lastTime);
-                this.lastY = clientY;
-                this.lastTime = now;
-            }
-
-            this.currentY = clientY;
-
-            // Actualizar posición con límites estrictos
-            const currentTranslate = this.getCurrentTranslate();
-            const newTranslate = Math.max(
-                Math.min(currentTranslate + deltaY, 0), // No puede ir arriba de 0 (primer item)
-                this.maxTranslate // No puede ir abajo del último item
-            );
-
-            this.wheelContent.style.transform = `translateY(${newTranslate}px)`;
+            this.currentY = e.type === 'mousemove' ? e.clientY : e.touches[0].clientY;
+            const deltaY = this.currentY - this.startY;
+            const translateY = Math.max(this.maxTranslate, Math.min(0, deltaY));
+            
+            this.wheelContent.style.transform = `translateY(${translateY}px)`;
         }
 
-        onEnd() {
+        onEnd(e) {
             if (!this.isDragging) return;
-
             this.isDragging = false;
-            this.wheelContent.style.transition = 'transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)';
 
-            // Aplicar inercia pero dentro de límites
+            const deltaY = this.currentY - this.startY;
+            const velocity = deltaY / (Date.now() - this.lastTime);
+            
+            // Calcular el índice basado en la posición final
             const currentTranslate = this.getCurrentTranslate();
-            let finalTranslate = currentTranslate + (this.velocity * 100);
-
-            // Asegurar que esté dentro de los límites
-            finalTranslate = Math.max(Math.min(finalTranslate, 0), this.maxTranslate);
-
-            // Encontrar el índice más cercano
-            const newIndex = Math.round(-finalTranslate / this.itemHeight);
-            this.snapToIndex(Math.max(0, Math.min(newIndex, this.items.length - 1)));
+            const targetIndex = Math.round(-currentTranslate / this.itemHeight);
+            const clampedIndex = Math.max(0, Math.min(this.items.length - 1, targetIndex));
+            
+            this.snapToIndex(clampedIndex);
         }
 
         onWheel(e) {
@@ -318,11 +304,19 @@
         }
 
         updatePosition() {
+            if (this.currentIndex === -1) {
+                // No se ha establecido un valor inicial, no actualizar posición
+                return;
+            }
             const translateY = -this.currentIndex * this.itemHeight;
             this.wheelContent.style.transform = `translateY(${translateY}px)`;
         }
 
         updateSelection() {
+            if (this.currentIndex === -1) {
+                // No se ha establecido un valor inicial, no actualizar selección
+                return;
+            }
             // Actualizar clases
             this.items.forEach((item, index) => {
                 item.classList.toggle('selected', index === this.currentIndex);
@@ -341,15 +335,59 @@
 
         // Método público para establecer valor
         setValue(value) {
-            const index = Array.from(this.items).findIndex(item => item.dataset.value === value.toString());
+            console.log(`setValue called with: ${value}, type: ${typeof value}`);
+            const index = Array.from(this.items).findIndex(item => {
+                const itemValue = item.dataset.value;
+                console.log(`Comparing ${itemValue} with ${value}, match: ${itemValue === value.toString()}`);
+                return itemValue === value.toString();
+            });
+            
+            console.log(`Found index: ${index} for value: ${value}`);
+            
             if (index !== -1) {
-                this.snapToIndex(index);
+                this.currentIndex = index;
+                this.updatePosition();
+                this.updateSelection();
+                console.log(`Successfully set value to index ${index}, currentIndex: ${this.currentIndex}`);
+            } else {
+                console.error(`Value ${value} not found in items`);
+            }
+        }
+
+        // Método público para obtener el valor actual
+        getValue() {
+            return this.items[this.currentIndex].dataset.value;
+        }
+
+        // Método para sincronizar la posición visual con el valor actual
+        syncVisualPosition() {
+            // Asegurar que la posición visual coincida con el índice actual
+            this.updatePosition();
+            this.updateSelection();
+        }
+
+        // Método para forzar sincronización completa
+        forceSync() {
+            if (this.currentIndex !== -1) {
+                // Forzar actualización de posición y selección
+                this.updatePosition();
+                this.updateSelection();
+                
+                // Verificar que el input hidden tenga el valor correcto
+                const expectedValue = this.items[this.currentIndex].dataset.value;
+                const inputElement = document.getElementById(this.inputId);
+                if (inputElement && inputElement.value !== expectedValue) {
+                    inputElement.value = expectedValue;
+                    console.log(`Forced sync: Updated ${this.inputId} from ${inputElement.value} to ${expectedValue}`);
+                }
             }
         }
     }
 
     // Inicializar wheel pickers
     document.addEventListener('DOMContentLoaded', function () {
+        console.log('DOM loaded, initializing wheel pickers...');
+        
         const yearPicker = new WheelPicker(
             document.querySelector('[data-input="year"]'),
             'year'
@@ -365,15 +403,107 @@
         const currentYear = currentDate.getFullYear();
         const currentMonth = currentDate.getMonth() + 1;
 
-        yearPicker.setValue(currentYear);
-        monthPicker.setValue(currentMonth);
+        console.log(`Current date: ${currentDate}`);
+        console.log(`Current year: ${currentYear}, Current month: ${currentMonth}`);
+
+        // IMPORTANTE: Establecer los valores después de que los pickers estén inicializados
+        setTimeout(() => {
+            console.log('Setting initial values - Year:', currentYear, 'Month:', currentMonth);
+            
+            // Verificar valores antes de setValue
+            console.log('Year input value before setValue:', document.getElementById('year').value);
+            console.log('Month input value before setValue:', document.getElementById('month').value);
+            
+            // ARREGLAR EL OFFSET: Ajustar el índice para que coincida con la posición visual
+            yearPicker.setValue(currentYear);
+            monthPicker.setValue(currentMonth);
+            
+            // Sincronizar la posición visual después de establecer los valores
+            yearPicker.syncVisualPosition();
+            monthPicker.syncVisualPosition();
+            
+            // Forzar sincronización completa para asegurar que no haya offset
+            yearPicker.forceSync();
+            monthPicker.forceSync();
+            
+            // Verificar que los valores se establecieron correctamente
+            console.log('Year input value after setValue:', document.getElementById('year').value);
+            console.log('Month input value after setValue:', document.getElementById('month').value);
+            console.log('Year picker current index:', yearPicker.currentIndex);
+            console.log('Month picker current index:', monthPicker.currentIndex);
+            
+            // Test adicional: verificar que los valores coinciden
+            const yearInputValue = document.getElementById('year').value;
+            const monthInputValue = document.getElementById('month').value;
+            const yearPickerValue = yearPicker.getValue();
+            const monthPickerValue = monthPicker.getValue();
+            
+            console.log('=== VALIDATION TEST ===');
+            console.log('Year input vs picker:', yearInputValue, '===', yearPickerValue, 'Match:', yearInputValue === yearPickerValue);
+            console.log('Month input vs picker:', monthInputValue, '===', monthPickerValue, 'Match:', monthInputValue === monthPickerValue);
+            
+            if (yearInputValue !== yearPickerValue || monthInputValue !== monthPickerValue) {
+                console.error('❌ MISMATCH DETECTED! Values are not synchronized!');
+            } else {
+                console.log('✅ All values are properly synchronized!');
+            }
+        }, 100);
 
         // Form submission
         document.getElementById('reporteForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const year = document.getElementById('year').value;
             const month = document.getElementById('month').value;
-            window.location.href = `/report/${year}/${month}`;
+            
+            // Debug: mostrar los valores seleccionados
+            console.log('=== FORM SUBMISSION DEBUG ===');
+            console.log('Selected year:', year, 'Selected month:', month);
+            console.log('Year type:', typeof year, 'Month type:', typeof month);
+            console.log('Year picker current index:', yearPicker.currentIndex);
+            console.log('Month picker current index:', monthPicker.currentIndex);
+            console.log('Year picker getValue():', yearPicker.getValue());
+            console.log('Month picker getValue():', monthPicker.getValue());
+            console.log('Year input value:', document.getElementById('year').value);
+            console.log('Month input value:', document.getElementById('month').value);
+            
+            // Validar que los valores sean válidos
+            if (!year || !month) {
+                alert('Por favor selecciona un año y mes válidos');
+                return;
+            }
+            
+            // Verificar que los valores sean números válidos
+            if (isNaN(parseInt(year)) || isNaN(parseInt(month))) {
+                alert('Los valores de año y mes deben ser números válidos');
+                return;
+            }
+            
+            const url = `/report/${year}/${month}`;
+            console.log('Redirecting to:', url);
+            
+            window.location.href = url;
+        });
+
+        // Botón de debug
+        document.getElementById('debugBtn').addEventListener('click', function() {
+            const year = document.getElementById('year').value;
+            const month = document.getElementById('month').value;
+            const url = `/report/${year}/${month}`;
+            
+            document.getElementById('debugYear').textContent = year;
+            document.getElementById('debugMonth').textContent = month;
+            document.getElementById('debugUrl').textContent = url;
+            
+            document.getElementById('debugInfo').classList.remove('hidden');
+            
+            console.log('=== DEBUG BUTTON CLICKED ===');
+            console.log('Year input value:', year);
+            console.log('Month input value:', month);
+            console.log('Generated URL:', url);
+            console.log('Year picker current index:', yearPicker.currentIndex);
+            console.log('Month picker current index:', monthPicker.currentIndex);
+            console.log('Year picker getValue():', yearPicker.getValue());
+            console.log('Month picker getValue():', monthPicker.getValue());
         });
     });
 

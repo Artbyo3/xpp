@@ -21,6 +21,8 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)  # Clave secreta generada aleatoriamente
 
+# Configuración de la aplicación
+
 # Configuración de seguridad
 SESSION_TIMEOUT = 3600  # 1 hora en segundos
 PASSWORD_MIN_LENGTH = 8
@@ -289,7 +291,9 @@ def dashboard():
 @login_required
 def new_report():
     """Page to select year and month for new report"""
-    return render_template('nuevo_reporte.html')
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+    return render_template('nuevo_reporte.html', current_year=current_year, current_month=current_month)
 
 @app.route('/reporte/<int:year>/<int:month>')
 @app.route('/report/<int:year>/<int:month>')

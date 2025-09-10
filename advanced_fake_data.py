@@ -7,8 +7,8 @@ import argparse
 def clear_all_data():
     """Clear all existing transaction data"""
     import os
-    db_path = os.path.join(os.path.dirname(__file__), 'ingresos.db')
-    print(f"🔍 Conectando a base de datos: {db_path}")
+    db_path = 'ingresos.db'
+    print("🔍 Conectando a base de datos...")
     
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -31,8 +31,8 @@ def generate_smart_fake_data(months=6, min_daily_income=50, max_daily_income=800
         clear_all_data()
     
     import os
-    db_path = os.path.join(os.path.dirname(__file__), 'ingresos.db')
-    print(f"🔍 Conectando a base de datos: {db_path}")
+    db_path = 'ingresos.db'
+    print("🔍 Conectando a base de datos...")
     
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -182,8 +182,8 @@ def quick_test_data():
     print("⚡ Generando datos de prueba rápidos...")
     
     import os
-    db_path = os.path.join(os.path.dirname(__file__), 'ingresos.db')
-    print(f"🔍 Conectando a base de datos: {db_path}")
+    db_path = 'ingresos.db'
+    print("🔍 Conectando a base de datos...")
     
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()

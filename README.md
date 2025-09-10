@@ -1,6 +1,6 @@
-# Registro de Ingresos Digitales
+# Registro de Ingresos Digitales - Aplicación Web
 
-Una aplicación web completa y moderna para llevar el registro detallado de tus ingresos digitales con soporte para múltiples transacciones por día.
+Una aplicación web completa y moderna para llevar el registro detallado de tus ingresos digitales con soporte para múltiples transacciones por día. **Solo versión web** - sin dependencias de escritorio.
 
 ## 🚀 Características Principales
 
@@ -45,19 +45,28 @@ Una aplicación web completa y moderna para llevar el registro detallado de tus 
 
 ## Instalación
 
-1. Instala las dependencias:
+1. **Clona o descarga el proyecto**
 
+2. **Crea un entorno virtual (recomendado):**
+```bash
+python -m venv venv
+```
+
+3. **Activa el entorno virtual:**
+   - Windows: `venv\Scripts\activate`
+   - Linux/Mac: `source venv/bin/activate`
+
+4. **Instala las dependencias:**
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Ejecuta la aplicación:
-
+5. **Ejecuta la aplicación:**
 ```bash
 python app.py
 ```
 
-3. Abre tu navegador en: http://localhost:5000
+6. **Abre tu navegador en:** http://localhost:5000
 
 ## Uso
 
@@ -70,16 +79,25 @@ python app.py
 
 ```
 xpp/
-├── app.py              # Aplicación Flask principal
-├── requirements.txt    # Dependencias Python
-├── ingresos.db        # Base de datos SQLite (se crea automáticamente)
-├── templates/         # Templates HTML
+├── app.py                    # Aplicación Flask principal
+├── advanced_fake_data.py     # Generador de datos de prueba
+├── requirements.txt          # Dependencias Python
+├── ingresos.db              # Base de datos SQLite (se crea automáticamente)
+├── templates/               # Templates HTML
 │   ├── base.html
 │   ├── dashboard.html
 │   ├── nuevo_reporte.html
 │   ├── reporte_mensual.html
-│   └── reportes.html
-└── static/           # Archivos estáticos (CSS, JS, imágenes)
+│   ├── reportes.html
+│   ├── imprimir_reporte.html
+│   ├── configuraciones.html
+│   ├── login.html
+│   ├── register.html
+│   └── 404.html
+└── static/                  # Archivos estáticos
+    ├── images/
+    │   └── icon.webp
+    └── uploads/
 ```
 
 ## Funcionalidades
