@@ -47,8 +47,5 @@ package-lock.json
 # CSS source files (keep only compiled)
 static/css/src/
 
-# Vercel
-.vercel
-
 # Logs
 *.log

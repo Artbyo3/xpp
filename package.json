@@ -3,8 +3,6 @@
   "version": "1.0.0",
   "description": "Aplicación web para registro de ingresos digitales",
   "scripts": {
-    "build": "python build.py",
-    "vercel-build": "python build.py",
     "build-css": "npx @tailwindcss/cli -i ./static/css/src/input.css -o ./static/css/dist/output.css",
     "build-css-watch": "npx @tailwindcss/cli -i ./static/css/src/input.css -o ./static/css/dist/output.css --watch"
   },
