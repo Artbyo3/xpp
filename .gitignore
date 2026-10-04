@@ -26,6 +26,14 @@ venv/
 env/
 ENV/
 
+# Environment / secrets
+.env
+.env.*
+*.env
+.env.local
+.env.production
+.env.development
+
 # Database
 *.db
 *.sqlite3
@@ -49,3 +57,6 @@ static/css/src/
 
 # Logs
 *.log
+
+# Deployment configs (no longer in use)
+.vercelignore
